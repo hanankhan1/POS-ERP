@@ -1,0 +1,120 @@
+﻿@model IEnumerable<POSERP.Models.Expense.ExpenseViewModel>
+@{
+    Layout = User.IsInRole("Admin") ? "_AdminLayout" : "_ManagerLayout";
+    ViewData["Title"] = "All Expenses";
+    string fromDate = ViewBag.FromDate;
+    string toDate = ViewBag.ToDate;
+    string selectedType = ViewBag.SelectedType;
+    string selectedCategory = ViewBag.SelectedCategory;
+}
+
+<div class="container mt-3">
+    <h2><i class="fas fa-money-bill-wave"></i> Complete Expense Register</h2>
+    <p>Includes: Purchases, Payroll, Employee Expenses, Discounts, Inventory Losses, Operational Costs</p>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    <!-- Filter Form -->
+    <div class="card mb-3">
+        <div class="card-header">Filter Expenses</div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-2">
+                    <label>From Date</label>
+                    <input type="date" name="fromDate" value="@fromDate" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <label>To Date</label>
+                    <input type="date" name="toDate" value="@toDate" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label>Expense Type</label>
+                    <select name="expenseType" class="form-select">
+                        <option value="">All</option>
+                        <option value="Purchase" selected="@(selectedType == "Purchase")">Purchase (COGS)</option>
+                        <option value="Salary" selected="@(selectedType == "Salary")">Salary</option>
+                        <option value="EmployeeExpense" selected="@(selectedType == "EmployeeExpense")">Employee Expense</option>
+                        <option value="Discount" selected="@(selectedType == "Discount")">Sales Discount</option>
+                        <option value="InventoryLoss" selected="@(selectedType == "InventoryLoss")">Inventory Loss</option>
+                        <option value="Operational" selected="@(selectedType == "Operational")">Operational</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>Category</label>
+                    <input type="text" name="category" value="@selectedCategory" class="form-control" placeholder="e.g., Travel, COGS, Utilities" />
+                </div>
+                <div class="col-md-2 align-self-end">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Operational Expense Button -->
+    <div class="mb-3">
+        <a href="/Expense/Create" class="btn btn-success"><i class="fas fa-plus"></i> Add Operational Expense</a>
+    </div>
+
+    <!-- Expenses Table -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Source</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var e in Model)
+                {
+                    <tr>
+                        <td>@e.ExpenseDate.ToString("yyyy-MM-dd")</td>
+                        <td>@e.ExpenseType</td>
+                        <td>@e.Category</td>
+                        <td class="text-danger fw-bold">$@e.Amount.ToString("N2")</td>
+                        <td>@Html.Raw(e.SourceInfo)</td>
+                        <td>@e.Description</td>
+                        <td>
+                            @if (e.ExpenseType == "Operational")
+                            {
+                                <button class="btn btn-sm btn-danger delete-expense" data-id="@e.ExpenseID">Delete</button>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Auto</span>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="7" class="text-center">No expenses found for selected filters.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('.delete-expense').click(function() {
+                if (confirm('Delete this operational expense? This action cannot be undone.')) {
+                    var id = $(this).data('id');
+                    $.post('/Expense/Delete', { id: id }, function(res) {
+                        if (res.success) location.reload();
+                        else alert(res.message || 'Error deleting expense.');
+                    });
+                }
+            });
+        });
+    </script>
+}

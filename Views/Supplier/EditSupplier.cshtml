@@ -1,0 +1,42 @@
+﻿@model POSERP.Models.Supplier.SupplierViewModel
+@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Edit Supplier";
+}
+
+<div class="container mt-3">
+    <h2><i class="fas fa-edit"></i> Edit Supplier</h2>
+    <form method="post">
+        <input type="hidden" asp-for="SupplierID" />
+        <div class="mb-3">
+            <label>Supplier Name *</label>
+            <input asp-for="SupplierName" class="form-control" />
+            <span asp-validation-for="SupplierName" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label>Contact Person</label>
+            <input asp-for="ContactPerson" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label>Phone</label>
+            <input asp-for="Phone" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label>Email</label>
+            <input asp-for="Email" class="form-control" type="email" />
+        </div>
+        <div class="mb-3">
+            <label>Address</label>
+            <textarea asp-for="Address" class="form-control" rows="2"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Update</button>
+        <a href="/Supplier/Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

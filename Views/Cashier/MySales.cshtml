@@ -1,0 +1,92 @@
+﻿@model IEnumerable<dynamic>
+
+@{
+    Layout = "_CashierLayout";
+    ViewData["Title"] = "My Sales";
+
+    var start = ViewBag.StartDate as string;
+    var end = ViewBag.EndDate as string;
+}
+
+<div class="container mt-3">
+    <h2>My Sales History</h2>
+
+    @if (!string.IsNullOrEmpty(ViewBag.Error))
+    {
+        <div class="alert alert-danger">@ViewBag.Error</div>
+    }
+
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-auto">
+            <label>From:</label>
+            <input type="date" name="from" value="@start" class="form-control" />
+        </div>
+
+        <div class="col-auto">
+            <label>To:</label>
+            <input type="date" name="to" value="@end" class="form-control" />
+        </div>
+
+        <div class="col-auto align-self-end">
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="/Cashier/MySales" class="btn btn-secondary">Reset</a>
+        </div>
+    </form>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-warning">
+            No sales found for the selected period.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Sale ID</th>
+                        <th>Date</th>
+                        <th>Total Amount</th>
+                        <th>Discount</th>
+                        <th>Tax</th>
+                        <th>Payment Method</th>
+                        <th>Payment Status</th>
+                        <th>Cancelled</th>
+                        <th>Receipt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model)
+                    {
+                        <tr>
+                            <td>@s.SaleID</td>
+                            <td>@s.SaleDate.ToString("dd-MMM-yyyy hh:mm tt")</td>
+                            <td>$@s.TotalAmount.ToString("F2")</td>
+                            <td>$@s.DiscountAmount.ToString("F2")</td>
+                            <td>$@s.TaxAmount.ToString("F2")</td>
+                            <td>@s.PaymentMethod</td>
+                            <td>@s.PaymentStatus</td>
+                            <td>
+                                @if (s.IsCancelled)
+                                {
+                                    <span class="badge bg-danger">Yes</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">No</span>
+                                }
+                            </td>
+                            <td>
+                                <a href="/Cashier/Receipt/@s.SaleID"
+                                   class="btn btn-sm btn-info">
+                                    View Receipt
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

@@ -1,0 +1,261 @@
+﻿@model IEnumerable<POSERP.Models.Employee.EmployeeViewModel>
+
+@{
+    Layout = User.IsInRole("Admin") ? "_AdminLayout" : "_ManagerLayout";
+
+    bool showInactive = ViewBag.ShowInactive ?? false;
+    string search = ViewBag.Search as string ?? "";
+    bool isAdmin = User.IsInRole("Admin");
+}
+
+<div class="container mt-3">
+
+    <h2>Employees</h2>
+
+    @Html.AntiForgeryToken()
+
+    <div class="d-flex justify-content-between mb-3">
+
+        <a href="/Employee/AddEmployee" class="btn btn-primary">
+            + Add Employee
+        </a>
+
+        <div>
+            @if (showInactive)
+            {
+                <a href="/Employee/EmployeeList?search=@search"
+                   class="btn btn-success">
+                    Show Active Only
+                </a>
+            }
+            else
+            {
+                <a href="/Employee/EmployeeList?showInactive=true&search=@search"
+                   class="btn btn-secondary">
+                    Show Inactive
+                </a>
+            }
+        </div>
+
+    </div>
+
+    <form method="get" class="mb-3">
+        <div class="input-group">
+
+            <input type="text"
+                   name="search"
+                   value="@search"
+                   class="form-control"
+                   placeholder="Search..." />
+
+            <button class="btn btn-primary">Search</button>
+
+        </div>
+    </form>
+
+    <table class="table table-bordered table-striped">
+
+        <thead class="table-dark">
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>CNIC</th>
+                <th>Phone</th>
+                <th>Salary</th>
+                <th>Designation</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            @foreach (var e in Model)
+            {
+                <tr>
+
+                    <td>@e.FullName</td>
+                    <td>@e.Email</td>
+                    <td>@e.Role</td>
+                    <td>@e.CNIC</td>
+                    <td>@e.Phone</td>
+                    <td>@e.Salary.ToString("0.00")</td>
+                    <td>@e.Designation</td>
+
+                    <td>
+                        @if (e.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactive</span>
+                        }
+                    </td>
+
+                    <td class="text-nowrap">
+
+                        <a href="/Employee/EditEmployee/@e.EmployeeID"
+                           class="btn btn-warning btn-sm">
+                            Edit
+                        </a>
+
+                        @if (isAdmin || e.Role == "Cashier")
+                        {
+                            @if (e.IsActive)
+                            {
+                                <button type="button"
+                                        class="btn btn-danger btn-sm deactivate-btn"
+                                        data-id="@e.EmployeeID">
+                                    Deactivate
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button"
+                                        class="btn btn-success btn-sm reactivate-btn"
+                                        data-id="@e.EmployeeID">
+                                    Reactivate
+                                </button>
+                            }
+
+                            <button type="button"
+                                    class="btn btn-dark btn-sm delete-btn"
+                                    data-id="@e.EmployeeID">
+                                Delete
+                            </button>
+                        }
+
+                    </td>
+
+                </tr>
+            }
+
+        </tbody>
+
+    </table>
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        // ================= DEACTIVATE =================
+
+        document.querySelectorAll(".deactivate-btn").forEach(button => {
+
+            button.addEventListener("click", function () {
+
+                if (!confirm("Deactivate this employee?"))
+                    return;
+
+                let id = this.dataset.id;
+
+                fetch('/Employee/DeactivateEmployee?id=' + id, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken':
+                            document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+
+                    if (data.success) {
+                        location.reload();
+                    }
+                    else {
+                        alert(data.message);
+                    }
+
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert("Error occurred.");
+                });
+
+            });
+
+        });
+
+        // ================= REACTIVATE =================
+
+        document.querySelectorAll(".reactivate-btn").forEach(button => {
+
+            button.addEventListener("click", function () {
+
+                if (!confirm("Reactivate this employee?"))
+                    return;
+
+                let id = this.dataset.id;
+
+                fetch('/Employee/ReactivateEmployee?id=' + id, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken':
+                            document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+
+                    if (data.success) {
+                        location.reload();
+                    }
+                    else {
+                        alert(data.message);
+                    }
+
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert("Error occurred.");
+                });
+
+            });
+
+        });
+
+        // ================= DELETE =================
+
+        document.querySelectorAll(".delete-btn").forEach(button => {
+
+            button.addEventListener("click", function () {
+
+                if (!confirm("Delete this employee permanently?"))
+                    return;
+
+                let id = this.dataset.id;
+
+                fetch('/Employee/DeleteEmployee?id=' + id, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken':
+                            document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+
+                    if (data.success) {
+                        location.reload();
+                    }
+                    else {
+                        alert(data.message);
+                    }
+
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert("Error occurred.");
+                });
+
+            });
+
+        });
+
+    </script>
+
+}

@@ -1,0 +1,46 @@
+﻿@model IEnumerable<POSERP.Models.Employee.PayrollViewModel>
+@{
+    Layout = User.IsInRole("Admin") ? "_AdminLayout" : "_ManagerLayout";
+}
+
+<div class="container mt-3">
+
+    <h2>Payroll</h2>
+
+    <form method="get">
+        <input type="month" name="month" value="@ViewBag.Month" />
+        <button class="btn btn-primary">Filter</button>
+    </form>
+
+    <form method="post" asp-action="GeneratePayroll">
+        <input type="hidden" name="month" value="@ViewBag.Month" />
+        <button class="btn btn-success">Generate Payroll</button>
+    </form>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Month</th>
+                <th>Salary</th>
+                <th>Bonus</th>
+                <th>Deduction</th>
+                <th>Net</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td>@p.EmployeeName</td>
+                    <td>@p.Month</td>
+                    <td>@p.BasicSalary</td>
+                    <td>@p.Bonus</td>
+                    <td>@p.Deductions</td>
+                    <td>@p.NetSalary</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

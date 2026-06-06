@@ -1,0 +1,38 @@
+﻿@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Stock Alerts";
+    var alerts = Model as IEnumerable<dynamic> ?? new List<dynamic>();
+}
+
+<div class="container">
+    <h2>Low Stock Alerts</h2>
+    @if (!alerts.Any())
+    {
+        <div class="alert alert-success">All products have sufficient stock.</div>
+    }
+    else
+    {
+        <table class="table table-danger table-bordered">
+            <thead><tr><th>Product</th><th>Barcode</th><th>Current Stock</th><th>Reorder Level</th><th>Supplier</th></tr></thead>
+            <tbody>
+                @foreach (var a in alerts)
+                {
+                    <tr>
+                        <td>@a.ProductName</td>
+                        <td>@a.Barcode</td>
+                        <td>@a.QuantityInStock</td>
+                        <td>@a.ReorderLevel</td>
+                        <td>@a.SupplierName</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

@@ -1,0 +1,160 @@
+﻿@model IEnumerable<POSERP.Models.Employee.PerformanceViewModel>
+@{
+    Layout = User.IsInRole("Admin") ? "_AdminLayout" : "_ManagerLayout";
+
+    ViewData["Title"] = "Performance Reviews";
+
+    var employees = ViewBag.Employees as List<dynamic> ?? new List<dynamic>();
+}
+
+<div class="container mt-3">
+    <h2><i class="fas fa-chart-line"></i> Employee Performance</h2>
+
+    <!-- ADD PERFORMANCE -->
+    <div class="card mb-3">
+        <div class="card-header">Add Performance Review</div>
+
+        <div class="card-body">
+            <form method="post" asp-action="AddPerformance">
+
+                <div class="row g-2">
+
+                    <!-- EMPLOYEE -->
+                    <div class="col-md-3">
+                        <select name="EmployeeID" class="form-select" required>
+                            <option value="">Select Employee</option>
+                            @foreach (var e in employees)
+                            {
+                                <option value="@e.Value">@e.Text</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- DATE -->
+                    <div class="col-md-2">
+                        <input type="date" name="ReviewDate" class="form-control" required />
+                    </div>
+
+                    <!-- TARGET -->
+                    <div class="col-md-2">
+                        <input type="number" step="0.01" name="SalesTarget" class="form-control" placeholder="Target" />
+                    </div>
+
+                    <!-- ACHIEVED -->
+                    <div class="col-md-2">
+                        <input type="number" step="0.01" name="SalesAchieved" class="form-control" placeholder="Achieved" />
+                    </div>
+
+                    <!-- RATING -->
+                    <div class="col-md-2">
+                        <select name="CustomerRating" class="form-select">
+                            <option value="">Rating</option>
+                            <option value="5">5 ★</option>
+                            <option value="4">4 ★</option>
+                            <option value="3">3 ★</option>
+                            <option value="2">2 ★</option>
+                            <option value="1">1 ★</option>
+                        </select>
+                    </div>
+
+                    <!-- BUTTON -->
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </div>
+
+                </div>
+
+                <div class="mt-2">
+                    <textarea name="Comments" class="form-control" placeholder="Comments (optional)" rows="2"></textarea>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-responsive">
+        <table class="table table-bordered">
+
+            <thead class="table-dark">
+                <tr>
+                    <th>Employee</th>
+                    <th>Review Date</th>
+                    <th>Sales Target</th>
+                    <th>Sales Achieved</th>
+                    <th>Achievement %</th>
+                    <th>Rating</th>
+                    <th>Comments</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var r in Model)
+                {
+                    <tr>
+
+                        <td>@r.EmployeeName</td>
+
+                        <td>
+                            @(r.ReviewDate == default
+                                ? "-"
+                                : r.ReviewDate.ToString("yyyy-MM-dd"))
+                        </td>
+
+                        <td>
+                            @(r.SalesTarget.HasValue
+                                ? "$" + r.SalesTarget.Value.ToString("F2")
+                                : "-")
+                        </td>
+
+                        <td>
+                            @(r.SalesAchieved.HasValue
+                                ? "$" + r.SalesAchieved.Value.ToString("F2")
+                                : "-")
+                        </td>
+
+                        <td>
+                            @if (r.SalesTarget.HasValue &&
+                                 r.SalesAchieved.HasValue &&
+                                 r.SalesTarget.Value > 0)
+                            {
+                                <span>
+                                    @((r.SalesAchieved.Value / r.SalesTarget.Value * 100).ToString("F0"))%
+                                </span>
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+                        </td>
+
+                        <td>
+                            @if (r.CustomerRating.HasValue)
+                            {
+                                for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= r.CustomerRating.Value)
+                                    {
+                                        <i class="fas fa-star text-warning"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="far fa-star text-muted"></i>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+                        </td>
+
+                        <td>@r.Comments</td>
+
+                    </tr>
+                }
+            </tbody>
+
+        </table>
+    </div>
+</div>

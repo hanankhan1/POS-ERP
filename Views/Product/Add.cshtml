@@ -1,0 +1,66 @@
+﻿@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Add Product";
+}
+
+<div class="container">
+    <h2 class="mt-3">Add New Product</h2>
+    <form method="post">
+        @Html.AntiForgeryToken()
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label>Product Name</label>
+                <input type="text" name="ProductName" class="form-control" required />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Barcode</label>
+                <input type="text" name="Barcode" class="form-control" required />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Category</label>
+                <select name="CategoryID" class="form-select" required>
+                    <option value="">-- Select --</option>
+                    @foreach (var cat in ViewBag.Categories)
+                    {
+                        <option value="@cat.CategoryID">@cat.CategoryName</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Supplier</label>
+                <select name="SupplierID" class="form-select" required>
+                    <option value="">-- Select --</option>
+                    @foreach (var sup in ViewBag.Suppliers)
+                    {
+                        <option value="@sup.SupplierID">@sup.SupplierName</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Cost Price</label>
+                <input type="number" step="0.01" name="CostPrice" class="form-control" required />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Selling Price</label>
+                <input type="number" step="0.01" name="SellingPrice" class="form-control" required />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Reorder Level</label>
+                <input type="number" name="ReorderLevel" class="form-control" required />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label>Unit (e.g., pcs, kg, bottle)</label>
+                <input type="text" name="Unit" class="form-control" />
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Save Product</button>
+        <a href="/Product/Product" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

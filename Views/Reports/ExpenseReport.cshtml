@@ -1,0 +1,205 @@
+﻿@using POSERP.Models.Reports
+
+@{
+    ViewData["Title"] = "Expense Report";
+
+    var summary = ViewBag.Summary as ExpenseSummaryViewModel;
+    var breakdown = ViewBag.ExpenseBreakdown as List<ExpenseReportViewModel>;
+
+    Layout = User.IsInRole("Admin")
+        ? "_AdminLayout"
+        : "_ManagerLayout";
+}
+
+<div class="container-fluid mt-3">
+
+    <h2 class="mb-4">Expense Report</h2>
+
+    <form method="get" asp-action="ExpenseReport" class="row mb-4">
+
+        <div class="col-md-3">
+            <label>Start Date</label>
+            <input type="date"
+                   name="startDate"
+                   value="@ViewBag.StartDate"
+                   class="form-control" />
+        </div>
+
+        <div class="col-md-3">
+            <label>End Date</label>
+            <input type="date"
+                   name="endDate"
+                   value="@ViewBag.EndDate"
+                   class="form-control" />
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100">
+                Generate Report
+            </button>
+        </div>
+
+    </form>
+
+    <!-- Summary Cards -->
+
+    <div class="row mb-4">
+
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6>Total Sales</h6>
+                    <h3>@summary.TotalSales.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h6>Total Payroll</h6>
+                    <h3>@summary.TotalPayroll.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h6>Total Expenses</h6>
+                    <h3>@summary.TotalExpenses.ToString("N2")</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+
+            @if (summary.NetProfit > 0)
+            {
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <h6>Net Profit</h6>
+                        <h3>@summary.NetProfit.ToString("N2")</h3>
+                    </div>
+                </div>
+            }
+            else if (summary.NetLoss > 0)
+            {
+                <div class="card bg-danger text-white">
+                    <div class="card-body">
+                        <h6>Net Loss</h6>
+                        <h3>@summary.NetLoss.ToString("N2")</h3>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card bg-secondary text-white">
+                    <div class="card-body">
+                        <h6>Break Even</h6>
+                        <h3>0.00</h3>
+                    </div>
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+    <!-- Expense Table -->
+
+    <div class="card mb-4">
+
+        <div class="card-header bg-secondary text-white">
+            Expense Breakdown
+        </div>
+
+        <div class="card-body">
+
+            <table class="table table-bordered table-striped">
+
+                <thead class="table-dark">
+                    <tr>
+                        <th>Expense Type</th>
+                        <th>Total Amount</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (var item in breakdown)
+                    {
+                        <tr>
+                            <td>@item.ExpenseType</td>
+                            <td>@item.TotalAmount.ToString("N2")</td>
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <!-- Chart -->
+
+    <div class="card">
+
+        <div class="card-header bg-info text-white">
+            Expense Analysis
+        </div>
+
+        <div class="card-body">
+
+            <canvas id="expenseChart" height="120"></canvas>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+
+        var labels = [
+        @Html.Raw(string.Join(",",
+            breakdown.Select(x => $"'{x.ExpenseType}'")))
+        ];
+
+        var values = [
+        @Html.Raw(string.Join(",",
+            breakdown.Select(x => x.TotalAmount)))
+        ];
+
+        new Chart(document.getElementById("expenseChart"), {
+
+        type: 'bar',
+
+        data: {
+        labels: labels,
+        datasets: [{
+        label: 'Expense Amount',
+        data: values
+        }]
+        },
+
+        options: {
+        responsive: true,
+        plugins: {
+        legend: {
+        display: true
+        }
+        }
+        }
+
+        });
+
+    </script>
+
+}

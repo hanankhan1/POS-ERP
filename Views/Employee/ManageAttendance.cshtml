@@ -1,0 +1,33 @@
+﻿@model IEnumerable<POSERP.Models.Employee.ManageAttendanceViewModel>
+@{
+    Layout = User.IsInRole("Admin") ? "_AdminLayout" : "_ManagerLayout";
+}
+
+<div class="container mt-3">
+    <h2>Manage Attendance</h2>
+
+    @Html.AntiForgeryToken()
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Check In</th>
+                <th>Check Out</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var e in Model)
+            {
+                <tr>
+                    <td>@e.FullName</td>
+                    <td>@e.CheckInTime</td>
+                    <td>@e.CheckOutTime</td>
+                    <td>@e.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,17 @@
+﻿@{
+    Layout = "_CashierLayout";
+    ViewData["Title"] = "Receipt";
+}
+
+<div class="container mt-3">
+    <h2>Receipt #@ViewBag.ReceiptNumber</h2>
+    <div class="card">
+        <div class="card-body">
+            @Html.Raw(ViewBag.ReceiptHTML)
+        </div>
+    </div>
+    <div class="mt-3">
+        <a href="/Cashier/MySales" class="btn btn-secondary">Back to My Sales</a>
+        <button onclick="window.print()" class="btn btn-primary">Print Receipt</button>
+    </div>
+</div>

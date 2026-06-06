@@ -1,0 +1,48 @@
+﻿@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Sales Report";
+    var startDate = ViewBag.StartDate as string;
+    var endDate = ViewBag.EndDate as string;
+}
+
+<div class="container-fluid mt-3">
+    <h2><i class="fas fa-chart-line"></i> Sales Report</h2>
+
+    <form method="get" class="mb-3 row g-2" id="filterForm">
+        <div class="col-auto">
+            <label>From:</label>
+            <input type="date" name="startDate" value="@startDate" class="form-control" />
+        </div>
+        <div class="col-auto">
+            <label>To:</label>
+            <input type="date" name="endDate" value="@endDate" class="form-control" />
+        </div>
+        <div class="col-auto align-self-end">
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="/Reports/SalesReport" class="btn btn-secondary">Reset</a>
+        </div>
+    </form>
+
+    <div id="dynamicContent">
+        @await Html.PartialAsync("_SalesReportPartial")
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function refreshReport() {
+            var formData = $('#filterForm').serialize();
+            $.get('/Reports/RefreshSalesReport?' + formData, function(data) {
+                $('#dynamicContent').html(data);
+            }).fail(function() { console.log('Auto-refresh failed'); });
+        }
+        setInterval(refreshReport, 30000);
+    </script>
+}

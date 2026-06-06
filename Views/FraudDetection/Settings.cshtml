@@ -1,0 +1,116 @@
+﻿@model List<POSERP.Models.Fraud.AlertSettingViewModel>
+
+@{
+        Layout = "_AdminLayout";
+
+    ViewData["Title"] = "Alert Settings";
+}
+
+<div class="container mt-3">
+
+    <h2>
+        <i class="fas fa-sliders-h"></i> Fraud Alert Settings
+    </h2>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["Success"]
+        </div>
+    }
+
+    <form method="post" asp-action="UpdateSettings">
+
+        <div class="table-responsive">
+            <table class="table table-bordered">
+
+                <thead class="table-dark">
+                    <tr>
+                        <th>Setting</th>
+                        <th>Value</th>
+                        <th>Description</th>
+                        <th>Notify Emails</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @for (int i = 0; i < Model.Count; i++)
+                    {
+                        <tr>
+
+                            <td>
+                                <input type="hidden"
+                                       name="[@(i)].SettingID"
+                                       value="@Model[i].SettingID" />
+
+                                <input type="hidden"
+                                       name="[@(i)].SettingName"
+                                       value="@Model[i].SettingName" />
+
+                                <strong>@Model[i].SettingName</strong>
+                            </td>
+
+                            <td>
+                                <input type="text"
+                                       name="[@(i)].SettingValue"
+                                       value="@Model[i].SettingValue"
+                                       class="form-control" />
+                            </td>
+
+                            <td>
+                                @Model[i].Description
+                            </td>
+
+                            <td>
+                                <input type="text"
+                                       name="[@(i)].NotifyEmails"
+                                       value="@Model[i].NotifyEmails"
+                                       class="form-control"
+                                       placeholder="email1@example.com, email2@example.com" />
+                            </td>
+
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            Save Settings
+        </button>
+
+        <a asp-action="Index"
+           class="btn btn-secondary">
+            Back to Alerts
+        </a>
+
+    </form>
+
+    <hr />
+
+    <h5>Default Settings Explanation</h5>
+
+    <ul>
+        <li>
+            <strong>MaxCancellationsPerHour</strong>
+            – Maximum cancellations per cashier per hour.
+        </li>
+
+        <li>
+            <strong>MaxDiscountPercent</strong>
+            – Maximum discount percentage allowed per sale.
+        </li>
+
+        <li>
+            <strong>MaxSalesPerHour</strong>
+            – Maximum sales a cashier can process per hour.
+        </li>
+
+        <li>
+            <strong>NotifyEmails</strong>
+            – Comma-separated email addresses that receive fraud alerts.
+        </li>
+    </ul>
+
+</div>

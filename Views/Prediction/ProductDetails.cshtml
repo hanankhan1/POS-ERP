@@ -1,0 +1,68 @@
+﻿@model dynamic
+@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = $"Prediction Details - {Model.ProductName}";
+}
+
+<div class="container mt-3">
+    <h2>Prediction Details: @Model.ProductName</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">Product Information</div>
+                <div class="card-body">
+                    <p><strong>Barcode:</strong> @Model.Barcode</p>
+                    <p><strong>Current Stock:</strong> @Model.CurrentStock</p>
+                    <p><strong>Reorder Level:</strong> @Model.ReorderLevel</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">Prediction</div>
+                <div class="card-body">
+                    <p><strong>Predicted Demand (7 days):</strong> @Model.PredictedDemand units</p>
+                    <p><strong>Confidence Score:</strong> @Model.ConfidenceScore.ToString("F0")%</p>
+                    <p><strong>Prediction Date:</strong> @Model.PredictionDate</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">Trend Analysis</div>
+                <div class="card-body">
+                    <p><strong>Weekly Average Sales:</strong> @Model.WeeklyAverage.ToString("F2") units/day</p>
+                    <p><strong>Monthly Average Sales:</strong> @Model.MonthlyAverage.ToString("F2") units/day</p>
+                    <p><strong>Trend Direction:</strong> @Model.TrendDirection</p>
+                    <p><strong>Recommendation:</strong> @Model.Recommendation</p>
+                    @if (Model.Recommendation != null && Model.Recommendation.Contains("weekends"))
+                    {
+                        <div class="alert alert-info mt-2">
+                            <i class="fas fa-calendar-week"></i> <strong>Weekend demand spike detected</strong> – Consider extra stock before Friday.
+                        </div>
+                    }
+                    @if (Model.Recommendation != null && Model.Recommendation.Contains("finish in"))
+                    {
+                        <div class="alert alert-warning mt-2">
+                            <i class="fas fa-hourglass-half"></i> <strong>@Model.Recommendation.Substring(Model.Recommendation.IndexOf("finish in"))</strong>
+                        </div>
+                    }
+                    <p><strong>Analysis Date:</strong> @Model.AnalysisDate</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mt-3">
+        <a href="/Prediction/Index" class="btn btn-secondary">Back to Predictions</a>
+        <a href="/Purchase/Create?productId=@Model.ProductID" class="btn btn-primary">Create Purchase Order</a>
+    </div>
+</div>

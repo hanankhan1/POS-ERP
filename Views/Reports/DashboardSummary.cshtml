@@ -1,0 +1,61 @@
+﻿@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Report Dashboard";
+}
+
+<div class="container-fluid mt-3">
+    <h2><i class="fas fa-chart-pie"></i> Report Dashboard</h2>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body">
+                    <h5>Today's Sales</h5>
+                    <h3>$@ViewBag.TodaySales</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body">
+                    <h5>This Month Sales</h5>
+                    <h3>$@ViewBag.MonthSales</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body">
+                    <h5>Low Stock Products</h5>
+                    <h3>@ViewBag.LowStockCount</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger mb-3">
+                <div class="card-body">
+                    <h5>Out of Stock</h5>
+                    <h3>@ViewBag.OutStockCount</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Quick Links</div>
+                <div class="card-body">
+                    <a href="/Reports/SalesReport" class="btn btn-outline-primary m-1">Sales Report</a>
+                    <a href="/Reports/ProfitReport" class="btn btn-outline-success m-1">Profit Report</a>
+                    <a href="/Reports/InventoryReport" class="btn btn-outline-info m-1">Inventory Report</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

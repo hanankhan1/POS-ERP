@@ -1,0 +1,523 @@
+﻿@{
+    Layout = "_ManagerLayout";
+    ViewData["Title"] = "Point of Sale";
+}
+
+<div class="container-fluid px-4">
+    <div class="pos-container">
+        <div class="pos-header">
+            <h2 class="mb-0"><i class="fas fa-cash-register me-2"></i>Point of Sale</h2>
+            <p class="mb-0 opacity-75">Scan barcode or search products</p>
+        </div>
+
+        <div class="row g-0">
+            <!-- Left Column - Products -->
+            <div class="col-lg-7 p-3">
+                <div class="product-search">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label">Scan Barcode</label>
+                            <input type="text" id="barcodeInput" class="form-control" placeholder="Scan or type barcode..." autofocus />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Search Product</label>
+                            <div class="input-group">
+                                <input type="text" id="searchInput" class="form-control" placeholder="Product name..." />
+                                <button id="searchBtn" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cart-table">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="fas fa-box me-2"></i>Products</h5>
+                    </div>
+                    <div id="productList" class="p-3 search-result">
+                        <div class="row g-3" id="productsContainer"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Cart & Summary -->
+            <div class="col-lg-5 p-3" style="background: #f8fafc;">
+                <div class="cart-table mb-3">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>Shopping Cart</h5>
+                        <button id="clearCartBtn" class="btn btn-sm btn-secondary">Clear Cart</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead>
+                                <tr><th>Product</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr>
+                            </thead>
+                            <tbody id="cartItems">
+                                <tr><td colspan="5" class="text-center text-muted">Cart is empty</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="order-summary">
+                    <h5 class="mb-3">Order Summary</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Customer</label>
+                        <div class="input-group">
+                            <select id="customerId" class="form-select">
+                                <option value="0">Walk-in Customer</option>
+                                @foreach (var customer in ViewBag.Customers)
+                                {
+                                    if (customer.Value != "0")
+                                    {
+                                        <option value="@customer.Value"
+                                                data-phone="@customer.Phone"
+                                                data-address="@customer.Address"
+                                                data-loyalty="@customer.LoyaltyPoints"
+                                                data-credit="@customer.CreditBalance">
+                                            @customer.Text
+                                        </option>
+                                    }
+                                }
+                            </select>
+                            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#newCustomerModal">
+                                <i class="fas fa-plus"></i> New
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Customer Info Card -->
+                    <div id="customerInfo" class="card mb-3" style="display:none;">
+                        <div class="card-body p-2">
+                            <small class="text-muted">Customer Details</small>
+                            <div id="customerDetails"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Payment Method</label>
+                        <select id="paymentMethod" class="form-select">
+                            <option value="Cash">💵 Cash</option>
+                            <option value="Card">💳 Card</option>
+                            <option value="Mobile">📱 Mobile Payment</option>
+                            <option value="Credit">💳 Credit (Add to balance)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Discount %</label>
+                        <input type="number" id="discountPercent" class="form-control" value="0" step="0.5" min="0" max="100" />
+                    </div>
+                    <div id="summaryDetails">
+                        <div class="summary-row"><span>Subtotal:</span><span id="subtotal">$0.00</span></div>
+                        <div class="summary-row"><span>Discount (<span id="discountPercentDisplay">0</span>%):</span><span id="discountAmount">-$0.00</span></div>
+                        <div class="summary-row"><span>Tax (8%):</span><span id="taxAmount">$0.00</span></div>
+                        <div class="summary-row total-row"><span>Total:</span><span id="totalAmount">$0.00</span></div>
+                    </div>
+                    <div class="mt-3">
+                        <button id="completeSaleBtn" class="btn btn-success btn-complete mb-2">COMPLETE SALE</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Customer Modal -->
+<div class="modal fade" id="newCustomerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Customer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <label>Full Name *</label>
+                    <input type="text" id="newCustomerName" class="form-control" />
+                </div>
+                <div class="mb-2">
+                    <label>Phone *</label>
+                    <input type="text" id="newCustomerPhone" class="form-control" />
+                </div>
+                <div class="mb-2">
+                    <label>Address</label>
+                    <textarea id="newCustomerAddress" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="saveNewCustomerBtn" class="btn btn-primary">Save Customer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Receipt Modal -->
+<div class="modal fade" id="receiptModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Sale Receipt</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="receiptContent"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pos-container {
+        background: #f4f7fc;
+        border-radius: 1.5rem;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+
+    .pos-header {
+        background: linear-gradient(135deg, #0f172a, #1e3a8a);
+        padding: 1rem 1.5rem;
+        color: white;
+    }
+
+    .product-search {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .cart-table {
+        background: white;
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+
+    .order-summary {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        position: sticky;
+        top: 1rem;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #eef2f6;
+    }
+
+    .total-row {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #1e3a8a;
+    }
+
+    .btn-complete {
+        background: linear-gradient(135deg, #10b981, #059669);
+        border: none;
+        width: 100%;
+        padding: 0.75rem;
+        font-weight: bold;
+    }
+
+    .product-card {
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+        .product-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+    .quantity-input {
+        width: 70px;
+        text-align: center;
+    }
+
+    .search-result {
+        max-height: 350px;
+        overflow-y: auto;
+    }
+
+    .customer-info-card {
+        font-size: 0.85rem;
+        background: #eef2ff;
+        border-left: 3px solid #2563eb;
+    }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let cart = [];
+
+        // Helper: update customer info display
+        function updateCustomerInfo() {
+        var selected = $('#customerId option:selected');
+        var customerId = $('#customerId').val();
+        if (customerId == "0") {
+        $('#customerInfo').hide();
+        return;
+        }
+        var name = selected.text();
+        var phone = selected.data('phone') || '';
+        var address = selected.data('address') || '';
+        var loyalty = selected.data('loyalty') || 0;
+        var credit = selected.data('credit') || 0;
+        var html = `<small><strong>${name}</strong><br/>
+        📞 ${phone}<br/>
+        🏠 ${address}<br/>
+        ⭐ Loyalty: ${loyalty} pts<br/>
+        💰 Credit: $${parseFloat(credit).toFixed(2)}</small>`;
+        $('#customerDetails').html(html);
+        $('#customerInfo').show();
+        }
+
+        // Add to cart function
+        function addToCart(productId, productName, price) {
+        $.post('/POS/CheckStock', { productId: productId, quantity: 1 }, function(stockCheck) {
+        if (!stockCheck.available) {
+        alert(`Cannot add ${productName}. Only ${stockCheck.stock} in stock.`);
+        return;
+        }
+        const existing = cart.find(item => item.productId === productId);
+        if (existing) {
+        let newQty = existing.quantity + 1;
+        if (newQty > stockCheck.stock) {
+        alert(`Cannot add more. Only ${stockCheck.stock} available.`);
+        return;
+        }
+        existing.quantity = newQty;
+        } else {
+        cart.push({ productId, productName, price, quantity: 1 });
+        }
+        updateCartDisplay();
+        });
+        }
+
+        function updateCartDisplay() {
+        const tbody = $('#cartItems');
+        tbody.empty();
+        if (cart.length === 0) {
+        tbody.html('<tr><td colspan="5" class="text-center text-muted">Cart is empty</td></tr>');
+        updateSummary();
+        return;
+        }
+        cart.forEach((item, idx) => {
+        const row = `
+        <tr>
+        <td>${item.productName}</td>
+        <td>$${item.price.toFixed(2)}</td>
+        <td><input type="number" class="form-control quantity-input" value="${item.quantity}" min="1" data-index="${idx}" onchange="updateQuantity(${idx}, this.value)" /></td>
+        <td>$${(item.price * item.quantity).toFixed(2)}</td>
+        <td><button class="btn btn-sm btn-danger" onclick="removeFromCart(${idx})"><i class="fas fa-trash"></i></button></td>
+        </tr>
+        `;
+        tbody.append(row);
+        });
+        updateSummary();
+        }
+
+        function updateQuantity(idx, qty) {
+        qty = parseInt(qty);
+        if (qty < 1) return;
+        const productId = cart[idx].productId;
+        $.post('/POS/CheckStock', { productId: productId, quantity: qty }, function(res) {
+        if (!res.available) {
+        alert(`Cannot set quantity to ${qty}. Only ${res.stock} in stock.`);
+        return;
+        }
+        cart[idx].quantity = qty;
+        updateCartDisplay();
+        });
+        }
+
+        function removeFromCart(idx) {
+        cart.splice(idx, 1);
+        updateCartDisplay();
+        }
+
+        function updateSummary() {
+        const subtotal = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+        const discPercent = parseFloat($('#discountPercent').val()) || 0;
+        const discAmount = subtotal * (discPercent / 100);
+        const taxable = subtotal - discAmount;
+        const tax = taxable * 0.08;
+        const total = taxable + tax;
+        $('#subtotal').text(`$${subtotal.toFixed(2)}`);
+        $('#discountPercentDisplay').text(discPercent);
+        $('#discountAmount').text(`-$${discAmount.toFixed(2)}`);
+        $('#taxAmount').text(`$${tax.toFixed(2)}`);
+        $('#totalAmount').text(`$${total.toFixed(2)}`);
+        }
+
+        function loadInitialProducts() {
+        $.post('/POS/SearchProduct', { barcode: '', productName: '' }, function(products) {
+        if (products && products.length > 0) displayProducts(products);
+        else displayProducts([{ productId: 1, productName: "Test Product 1", sellingPrice: 10.00 }, { productId: 2, productName: "Test Product 2", sellingPrice: 20.00 }]);
+        }).fail(function() {
+        displayProducts([{ productId: 1, productName: "Test Product 1", sellingPrice: 10.00 }, { productId: 2, productName: "Test Product 2", sellingPrice: 20.00 }]);
+        });
+        }
+
+        function displayProducts(products) {
+        const container = $('#productsContainer');
+        container.empty();
+        products.forEach(p => {
+        const card = `
+        <div class="col-md-4">
+        <div class="card product-card">
+        <div class="card-body text-center">
+        <i class="fas fa-box fa-2x mb-2 text-primary"></i>
+        <h6 class="card-title">${p.productName}</h6>
+        <p class="text-muted mb-2">$${p.sellingPrice.toFixed(2)}</p>
+        <button class="btn btn-sm btn-outline-primary add-to-cart-btn"
+        data-id="${p.productId}"
+        data-name="${p.productName}"
+        data-price="${p.sellingPrice}">
+        <i class="fas fa-cart-plus"></i> Add
+        </button>
+        </div>
+        </div>
+        </div>
+        `;
+        container.append(card);
+        });
+        attachEvents();
+        }
+
+        function attachEvents() {
+        $('.add-to-cart-btn').off('click').on('click', function(e) {
+        e.preventDefault();
+        let id = $(this).data('id');
+        let name = $(this).data('name');
+        let price = parseFloat($(this).data('price'));
+        addToCart(id, name, price);
+        });
+        }
+
+        $('#searchBtn').click(function() {
+        let term = $('#searchInput').val();
+        if (!term) return;
+        $.post('/POS/SearchProduct', { barcode: '', productName: term }, function(products) {
+        displayProducts(products);
+        });
+        });
+
+        $('#barcodeInput').keypress(function(e) {
+        if (e.which === 13) {
+        let bc = $(this).val();
+        if (!bc) return;
+        $.post('/POS/SearchProduct', { barcode: bc, productName: '' }, function(products) {
+        if (products && products.length > 0) {
+        let p = products[0];
+        addToCart(p.productId, p.productName, p.sellingPrice);
+        } else {
+        alert('Product not found');
+        }
+        $('#barcodeInput').val('');
+        });
+        }
+        });
+
+        $('#completeSaleBtn').click(function() {
+        if (cart.length === 0) {
+        alert('Cart is empty');
+        return;
+        }
+        const saleData = {
+        customerId: parseInt($('#customerId').val()),
+        paymentMethod: $('#paymentMethod').val(),
+        discountPercentage: parseFloat($('#discountPercent').val()),
+        taxPercentage: 8,
+        cartItems: cart
+        };
+        $.ajax({
+        url: '/POS/CompleteSale',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(saleData),
+        success: function(res) {
+        if (res.success) {
+        showReceiptModal(res.receipt);
+        cart = [];
+        updateCartDisplay();
+        $('#customerId').val('0');
+        $('#discountPercent').val('0');
+        $('#paymentMethod').val('Cash');
+        updateCustomerInfo();
+        } else {
+        alert('Error: ' + res.message);
+        }
+        },
+        error: function() { alert('Server error'); }
+        });
+        });
+
+        function showReceiptModal(receipt) {
+        let itemsHtml = '';
+        receipt.items.forEach(item => {
+        itemsHtml += `<tr><td>${item.productName}</td><td>${item.quantity}</td><td>$${item.price}</td><td>$${(item.price * item.quantity).toFixed(2)}</td></tr>`;
+        });
+        const html = `
+        <div style="font-family: monospace;">
+        <h4 style="text-align:center">SmartPOS ERP</h4>
+        <p style="text-align:center">${new Date(receipt.date).toLocaleString()}<br/>Receipt: ${receipt.receiptNumber}</p>
+        <hr/>
+        <p><strong>Cashier:</strong> ${receipt.cashierName}<br/><strong>Customer:</strong> ${receipt.customerName}</p>
+        <hr/>
+        <table style="width:100%"><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
+        <tbody>${itemsHtml}</tbody></table>
+        <hr/>
+        <p>Subtotal: $${receipt.subtotal.toFixed(2)}<br/>
+        Discount (${receipt.discountPercent}%): -$${receipt.discountAmount.toFixed(2)}<br/>
+        Tax (${receipt.taxPercent}%): $${receipt.taxAmount.toFixed(2)}<br/>
+        <strong>Total: $${receipt.totalAmount.toFixed(2)}</strong><br/>
+        Payment: ${receipt.paymentMethod}</p>
+        <hr/>
+        <p style="text-align:center">Thank you!</p>
+        </div>
+        `;
+        $('#receiptContent').html(html);
+        const modal = new bootstrap.Modal(document.getElementById('receiptModal'));
+        modal.show();
+        }
+
+        $('#clearCartBtn').click(function() { if (confirm('Clear cart?')) { cart = []; updateCartDisplay(); } });
+        $('#discountPercent').on('input', updateSummary);
+        $('#barcodeInput').focus();
+
+        // Save new customer
+        $('#saveNewCustomerBtn').click(function() {
+        var name = $('#newCustomerName').val().trim();
+        var phone = $('#newCustomerPhone').val().trim();
+        var address = $('#newCustomerAddress').val().trim();
+        if (!name || !phone) {
+        alert('Name and phone are required');
+        return;
+        }
+        $.post('/POS/AddQuickCustomer', { fullName: name, phone: phone, address: address }, function(res) {
+        if (res.success) {
+        // Reload page to refresh customer list (or append option dynamically)
+        location.reload();
+        } else {
+        alert(res.message);
+        }
+        });
+        });
+
+        // When customer selection changes, update info
+        $('#customerId').on('change', function() {
+        updateCustomerInfo();
+        });
+
+        $(document).ready(function() {
+        loadInitialProducts();
+        updateCustomerInfo();
+        });
+    </script>
+}

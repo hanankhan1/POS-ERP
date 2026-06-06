@@ -1,0 +1,77 @@
+﻿@{
+    var sales = ViewBag.SalesData as List<POSERP.Models.Reports.SalesReportViewModel> ?? new List<POSERP.Models.Reports.SalesReportViewModel>();
+    var productDetails = ViewBag.ProductDetails as List<POSERP.Models.Reports.ProductSalesDetailViewModel> ?? new List<POSERP.Models.Reports.ProductSalesDetailViewModel>();
+}
+
+@if (!sales.Any() && !productDetails.Any())
+{
+    <div class="alert alert-info">No sales data for selected period.</div>
+}
+else
+{
+    <div class="card mb-4">
+        <div class="card-header">Daily Sales Summary</div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Sales Count</th>
+                            <th>Total Amount</th>
+                            <th>Discount</th>
+                            <th>Tax</th>
+                            <th>Net Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in sales)
+                        {
+                            <tr>
+                                <td>@s.Date.ToString("yyyy-MM-dd")</td>
+                                <td>@s.SaleCount</td>
+                                <td>$@s.TotalAmount.ToString("F2")</td>
+                                <td>$@s.DiscountAmount.ToString("F2")</td>
+                                <td>$@s.TaxAmount.ToString("F2")</td>
+                                <td>$@s.NetAmount.ToString("F2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Product Sales & Profit</div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Qty Sold</th>
+                            <th>Total Sales</th>
+                            <th>Total Cost</th>
+                            <th>Gross Profit</th>
+                            <th>Profit Margin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in productDetails)
+                        {
+                            <tr>
+                                <td>@p.ProductName</td>
+                                <td>@p.Quantity</td>
+                                <td>$@p.TotalSales.ToString("F2")</td>
+                                <td>$@p.TotalCost.ToString("F2")</td>
+                                <td>$@p.GrossProfit.ToString("F2")</td>
+                                <td>@p.ProfitMargin.ToString("F2")%</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}

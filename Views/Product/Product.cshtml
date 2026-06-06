@@ -1,0 +1,92 @@
+﻿@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Products";
+    var products = Model as IEnumerable<dynamic> ?? new List<dynamic>();
+}
+
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+        <h2><i class="fas fa-boxes me-2"></i>Product List</h2>
+        <a href="/Product/Add" class="btn btn-primary"><i class="fas fa-plus"></i> Add Product</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+    <!-- Search Form -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" action="/Product/Product" class="row g-3">
+                <div class="col-md-10">
+                    <input type="text" name="search" class="form-control" placeholder="Search by product name, barcode, category, or supplier..." value="@ViewBag.Search" />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search"></i> Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @if (!string.IsNullOrEmpty(ViewBag.Search))
+    {
+        <div class="mb-2">
+            <a href="/Product/Product" class="btn btn-secondary btn-sm">Clear Search</a>
+        </div>
+    }
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Barcode</th>
+                            <th>Category</th>
+                            <th>Supplier</th>
+                            <th>Cost</th>
+                            <th>Selling</th>
+                            <th>Stock</th>
+                            <th>Reorder</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in products)
+                        {
+                            <tr>
+                                <td>@p.ProductID</td>
+                                <td>@p.ProductName</td>
+                                <td>@p.Barcode</td>
+                                <td>@p.CategoryName</td>
+                                <td>@p.SupplierName</td>
+                                <td>@p.CostPrice</td>
+                                <td>@p.SellingPrice</td>
+                                <td>@p.QuantityInStock</td>
+                                <td>@p.ReorderLevel</td>
+                                <td>
+                                    <a href="/Product/Edit/@p.ProductID" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Edit</a>
+                                    <form method="post" action="/Product/Delete/@p.ProductID" style="display:inline;" onsubmit="return confirm('Are you sure?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

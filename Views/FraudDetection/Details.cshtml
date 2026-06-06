@@ -1,0 +1,42 @@
+﻿@model POSERP.Models.Fraud.FraudAlertViewModel
+@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Alert Details";
+}
+
+<div class="container mt-3">
+    <h2>Alert Details</h2>
+    <div class="card">
+        <div class="card-body">
+            <p><strong>Alert ID:</strong> @Model.AlertID</p>
+            <p><strong>Sale ID:</strong> <a href="/POS/Receipt/@Model.SaleID">@Model.SaleID</a></p>
+            <p><strong>Cashier:</strong> @Model.CashierName</p>
+            <p><strong>Alert Type:</strong> @Model.AlertType</p>
+            <p><strong>Risk Level:</strong> @Model.RiskLevel</p>
+            <p><strong>Description:</strong> @Model.Description</p>
+            <p><strong>Sale Amount:</strong> $@Model.SaleAmount.ToString("F2")</p>
+            <p><strong>Discount Amount:</strong> $@ViewBag.DiscountAmount.ToString("F2")</p>
+            <p><strong>Payment Method:</strong> @ViewBag.PaymentMethod</p>
+            <p><strong>Sale Date:</strong> @ViewBag.SaleDate</p>
+            <p><strong>Created At:</strong> @Model.CreatedAt</p>
+            <p><strong>Status:</strong> @Model.Status</p>
+        </div>
+    </div>
+    <div class="mt-3">
+        <a href="/FraudDetection/Index" class="btn btn-secondary">Back to Alerts</a>
+        @if (Model.Status == "Pending")
+        {
+            <form method="post" action="/FraudDetection/DismissAlert" style="display:inline;">
+                <input type="hidden" name="id" value="@Model.AlertID" />
+                <button type="submit" class="btn btn-success">Dismiss Alert</button>
+            </form>
+        }
+    </div>
+</div>

@@ -1,0 +1,73 @@
+﻿@model IEnumerable<POSERP.Models.Purchase.PurchaseOrderViewModel>
+@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Purchase Orders";
+}
+
+<div class="container mt-3">
+    <h2><i class="fas fa-shopping-cart"></i> Purchase Orders</h2>
+    <div class="mb-3">
+        <a href="/Purchase/Create" class="btn btn-primary"><i class="fas fa-plus"></i> Create Purchase Order</a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No purchase orders found. Click "Create Purchase Order" to add one.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>PO #</th>
+                        <th>Supplier</th>
+                        <th>Date</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var po in Model)
+                    {
+                        <tr>
+                            <td>@po.PurchaseOrderID</td>
+                            <td>@po.SupplierName</td>
+                            <td>@po.OrderDate.ToString("yyyy-MM-dd")</td>
+                            <td>$@po.TotalAmount.ToString("F2")</td>
+                            <td>
+                                @if (po.Status == "Completed" || po.Status == "Received")
+                                {
+                                    <span class="badge bg-success">@po.Status</span>
+                                }
+                                else if (po.Status == "Pending")
+                                {
+                                    <span class="badge bg-warning">Pending</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@po.Status</span>
+                                }
+                            </td>
+                            <td>
+                                <a href="/Purchase/Details/@po.PurchaseOrderID" class="btn btn-sm btn-info">Details</a>
+                                @if (po.Status == "Pending")
+                                {
+                                    <a href="/Purchase/Edit/@po.PurchaseOrderID" class="btn btn-sm btn-warning">Edit</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

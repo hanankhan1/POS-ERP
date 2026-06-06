@@ -1,0 +1,389 @@
+﻿﻿@{
+Layout = "_AdminLayout";
+ViewData["Title"] = "Admin Dashboard";
+}
+
+@using System.Collections.Generic
+@{
+    var salesLabels = ViewBag.SalesLabels as List<string> ?? new List<string>();
+    var salesValues = ViewBag.SalesValues as List<decimal> ?? new List<decimal>();
+    var profitValues = ViewBag.ProfitValues as List<decimal> ?? new List<decimal>();
+    var categoryNames = ViewBag.CategoryNames as List<string> ?? new List<string>();
+    var categoryPercentages = ViewBag.CategoryPercentages as List<decimal> ?? new List<decimal>();
+    var fraudAlerts = ViewBag.FraudAlerts as IEnumerable<dynamic> ?? new List<dynamic>();
+    var predictions = ViewBag.Predictions as IEnumerable<dynamic> ?? new List<dynamic>();
+    var recentOrders = ViewBag.RecentOrders as IEnumerable<dynamic> ?? new List<dynamic>();
+    var lowStockItems = ViewBag.LowStockItems as IEnumerable<dynamic> ?? new List<dynamic>();
+}
+
+<!-- Dashboard Header -->
+<div class="dashboard-header d-flex justify-content-between align-items-center flex-wrap">
+    <div>
+        <h2 class="fw-bold mb-0">
+            <i class="fas fa-chalkboard-user me-2"></i>
+            Admin Dashboard
+        </h2>
+        <p class="mb-0 text-light mt-1">Welcome back, @User.Identity.Name</p>
+    </div>
+    <div class="d-flex gap-3 align-items-center">
+        <span class="badge bg-white text-dark px-3 py-2 shadow-sm">
+            <i class="far fa-calendar-alt me-1"></i> @DateTime.Now.ToString("dddd, MMM dd, yyyy")
+        </span>
+        <div class="clock-buttons">
+            <button id="clockInBtn" class="btn-clock-in"><i class="fas fa-sign-in-alt"></i> Clock In</button>
+            <button id="clockOutBtn" class="btn-clock-out"><i class="fas fa-sign-out-alt"></i> Clock Out</button>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards Row -->
+<div class="px-4">
+    <div class="row g-4 mb-4">
+        <!-- Revenue Card -->
+        <div class="col-md-3">
+            <div class="card stat-card bg-primary text-white">
+                <div class="card-body">
+                    <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="card-title">Today's Revenue</div>
+                    <div class="stat-value">$@ViewBag.TodayRevenue</div>
+                    <small class="opacity-75"><i class="fas fa-arrow-up me-1"></i>+12.5% from last week</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Card -->
+        <div class="col-md-3">
+            <div class="card stat-card bg-info text-white">
+                <div class="card-body">
+                    <div class="stat-icon"><i class="fas fa-shopping-bag"></i></div>
+                    <div class="card-title">Total Orders (30d)</div>
+                    <div class="stat-value">@ViewBag.TotalOrders</div>
+                    <small class="opacity-75"><i class="fas fa-arrow-up me-1"></i>+8.2% from last month</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customers Card -->
+        <div class="col-md-3">
+            <div class="card stat-card text-white" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                <div class="card-body">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="card-title">Total Customers</div>
+                    <div class="stat-value">@ViewBag.TotalCustomers</div>
+                    <small class="opacity-75"><i class="fas fa-arrow-up me-1"></i>+3.1% growth</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Low Stock Card -->
+        <div class="col-md-3">
+            <div class="card stat-card bg-warning text-white">
+                <div class="card-body">
+                    <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="card-title">Low Stock Items</div>
+                    <div class="stat-value">@ViewBag.LowStockCount</div>
+                    <small class="opacity-75"><i class="fas fa-arrow-down me-1"></i>Needs attention</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart & Recent Orders Row -->
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <i class="fas fa-chart-line me-2 text-primary"></i> Sales & Profit Trends (Last 7 Days)
+                </div>
+                <div class="card-body">
+                    <canvas id="salesProfitChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card recent-orders-card">
+                <div class="card-header">
+                    <i class="fas fa-clock me-2 text-primary"></i> Recent Orders
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-recent table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (recentOrders.Any())
+                                {
+                                    foreach (var order in recentOrders)
+                                    {
+                                        <tr>
+                                            <td class="font-monospace">#POS-@order.SaleID</td>
+                                            <td>@order.CustomerName</td>
+                                            <td>$@order.TotalAmount.ToString("N2")</td>
+                                            <td>
+                                                <span class="badge-status @(order.PaymentStatus.ToString() == "Paid" ? "bg-soft-success" : "bg-soft-warning")">
+                                                    @order.PaymentStatus
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4 text-muted">No recent orders</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fraud Alerts & Predictions Row -->
+    <div class="row g-4 mt-2">
+        <div class="col-lg-6">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <i class="fas fa-shield-alt me-2 text-danger"></i> Fraud Detection Alerts
+                    <span class="badge bg-danger ms-2">@fraudAlerts.Count() New</span>
+                </div>
+                <div class="card-body p-0">
+                    @if (fraudAlerts.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var alert in fraudAlerts)
+                            {
+                                <div class="fraud-alert-item d-flex align-items-start gap-3">
+                                    <div class="fraud-alert-icon flex-shrink-0">
+                                        <i class="fas fa-bell text-danger"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <p class="mb-0 fw-semibold">@alert.Description</p>
+                                        <small class="text-muted">
+                                            <i class="far fa-clock me-1"></i> @alert.CashierName · @(((DateTime)alert.CreatedAt).ToString("hh:mm tt"))
+                                        </small>
+                                    </div>
+                                    <div>
+                                        <span class="badge @(alert.RiskLevel.ToString() == "High" ? "bg-danger" : "bg-warning") px-2 py-1">
+                                            @alert.RiskLevel
+                                        </span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="fas fa-check-circle text-success fs-1 mb-2"></i>
+                            <p>No active fraud alerts</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <i class="fas fa-brain me-2" style="color: #6366f1;"></i> Smart Inventory Predictions
+                </div>
+                <div class="card-body p-0">
+                    @if (predictions.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var item in predictions)
+                            {
+                                <div class="prediction-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="mb-0 fw-semibold">@item.ProductName</p>
+                                        <small class="text-muted">Stock: @item.QuantityInStock / Reorder: @item.ReorderLevel</small>
+                                    </div>
+                                    <div>
+                                        <span class="badge @(item.StockStatus.ToString() == "Critical" ? "bg-danger" : "bg-warning") px-2 py-1">
+                                            @(item.StockStatus.ToString() == "Critical" ? "Critical" : "Low Stock")
+                                        </span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="fas fa-check-circle text-success fs-1 mb-2"></i>
+                            <p>All stock levels are healthy</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Stock Detailed Row -->
+    <div class="row g-4 mt-2">
+        <div class="col-12">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <i class="fas fa-exclamation-triangle me-2 text-warning"></i> Low Stock Alerts - Detailed
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>Supplier</th>
+                                    <th>Current Stock</th>
+                                    <th>Reorder Level</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (lowStockItems.Any())
+                                {
+                                    foreach (var item in lowStockItems)
+                                    {
+                                        <tr>
+                                            <td class="fw-medium">@item.ProductName</td>
+                                            <td>@item.SupplierName</td>
+                                            <td><span class="text-danger fw-bold">@item.QuantityInStock</span></td>
+                                            <td>@item.ReorderLevel</td>
+                                            <td><span class="badge bg-warning">Reorder Required</span></td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">No low stock items</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Stats Footer -->
+    <div class="row g-4 mt-2 mb-4">
+        <div class="col-md-3">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <h3 class="text-success fw-bold mb-0">99.8%</h3>
+                    <small class="text-muted">Uptime</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <h3 class="text-primary fw-bold mb-0">@ViewBag.ActiveUsers</h3>
+                    <small class="text-muted">Active Users</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <h3 class="text-info fw-bold mb-0">@ViewBag.TotalProducts</h3>
+                    <small class="text-muted">Products</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <h3 class="text-warning fw-bold mb-0">@ViewBag.PendingTasks</h3>
+                    <small class="text-muted">Pending Tasks</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="dashboard-footer">
+    <i class="fas fa-shield-alt me-1"></i> SmartPOS ERP – Admin Dashboard | AI-Powered Fraud Detection & Inventory Intelligence
+</div>
+
+@section Scripts {
+    <script>
+        // Sales & Profit Chart
+        var salesCtx = document.getElementById('salesProfitChart').getContext('2d');
+
+        var labels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(salesLabels));
+        var salesData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(salesValues));
+        var profitData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(profitValues));
+
+        new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Sales ($)',
+                        data: salesData,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59,130,246,0.05)',
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#2563eb',
+                        pointBorderColor: '#fff',
+                        pointRadius: 4
+                    },
+                    {
+                        label: 'Profit ($)',
+                        data: profitData,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16,185,129,0.05)',
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#059669',
+                        pointBorderColor: '#fff',
+                        pointRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { mode: 'index' }
+                },
+                scales: { y: { beginAtZero: true, grid: { color: '#e2e8f0' } } }
+            }
+        });
+
+        // Clock In/Out functionality
+        $(document).ready(function() {
+            $('#clockInBtn').click(function() {
+                $.post('/Manager/ClockIn', function(response) {
+                    alert(response.message);
+                    if (response.success) location.reload();
+                }).fail(function() {
+                    alert('Error clocking in. Please try again.');
+                });
+            });
+            $('#clockOutBtn').click(function() {
+                $.post('/Manager/ClockOut', function(response) {
+                    alert(response.message);
+                    if (response.success) location.reload();
+                }).fail(function() {
+                    alert('Error clocking out. Please try again.');
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,46 @@
+﻿@model IEnumerable<dynamic>
+@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Customer Activity Log";
+}
+<div class="container mt-3">
+    <h2><i class="fas fa-history"></i> Customer Activity Log</h2>
+    <a href="/Customer/CustomerList" class="btn btn-secondary mb-3">Back to Customer List</a>
+
+    <form method="get" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="search" class="form-control" placeholder="Search by Customer ID..." value="@ViewBag.SearchTerm" />
+            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
+            <a href="/Customer/CustomerLogs" class="btn btn-secondary"><i class="fas fa-times"></i> Clear</a>
+        </div>
+    </form>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr><th>Log ID</th><th>User</th><th>Action</th><th>Customer ID</th><th>Date/Time</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var log in Model)
+            {
+                <tr>
+                    <td>@log.LogID</td>
+                    <td>@log.UserName</td>
+                    <td>@log.Action</td>
+                    <td>@log.RecordID</td>
+                    <td>@log.Timestamp</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No customer activity found.</div>
+    }
+</div>

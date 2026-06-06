@@ -1,0 +1,169 @@
+﻿@model POSERP.Models.Purchase.PurchaseOrderViewModel
+@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Edit Purchase Order #" + Model.PurchaseOrderID;
+}
+
+<div class="container mt-3">
+    <h2><i class="fas fa-edit"></i> Edit Purchase Order #@Model.PurchaseOrderID</h2>
+
+    @if (Model.Status != "Pending")
+    {
+        <div class="alert alert-warning">This order has already been received and cannot be edited.</div>
+        <a href="/Purchase/Details/@Model.PurchaseOrderID" class="btn btn-secondary">Back to Details</a>
+    }
+    else
+    {
+        <form method="post" asp-action="Edit">
+            <input type="hidden" asp-for="PurchaseOrderID" />
+            <div class="mb-3">
+                <label>Supplier</label>
+                <select asp-for="SupplierID" class="form-select" asp-items="ViewBag.Suppliers" required>
+                    <option value="">-- Select Supplier --</option>
+                </select>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header">Products</div>
+                <div class="card-body">
+                    <div id="itemsContainer">
+                        @if (Model.Items != null)
+                        {
+                            for (int i = 0; i < Model.Items.Count; i++)
+                            {
+                                var item = Model.Items[i];
+                                <div class="row mb-2 item-row" data-index="@i">
+                                    <div class="col-md-4">
+                                        <select name="Items[@i].ProductID" class="form-select product-select" required>
+                                            <option value="">-- Select Product --</option>
+                                            @foreach (var prod in ViewBag.Products)
+                                            {
+                                                if (prod.ProductID == item.ProductID)
+                                                {
+                                                    <option value="@prod.ProductID" data-price="@prod.SellingPrice" selected>@prod.ProductName</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@prod.ProductID" data-price="@prod.SellingPrice">@prod.ProductName</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="number" name="Items[@i].Quantity" class="form-control quantity" value="@item.Quantity" min="1" required />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="number" step="0.01" name="Items[@i].CostPrice" class="form-control price" value="@item.CostPrice" required />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <span class="subtotal">$@item.SubTotal.ToString("F2")</span>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="button" class="btn btn-danger btn-sm remove-item">Remove</button>
+                                    </div>
+                                    <input type="hidden" name="Items[@i].ProductName" value="@item.ProductName" />
+                                    <input type="hidden" name="Items[@i].Barcode" value="@item.Barcode" />
+                                </div>
+                            }
+                        }
+                    </div>
+                    <button type="button" id="addItemBtn" class="btn btn-secondary btn-sm"><i class="fas fa-plus"></i> Add Product</button>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label>Total Amount</label>
+                <input type="text" id="totalAmount" class="form-control" readonly value="$@Model.TotalAmount.ToString("F2")" />
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="/Purchase/Index" class="btn btn-secondary">Cancel</a>
+        </form>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        let productData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Products));
+        let itemIndex = @(Model.Items?.Count ?? 0);
+
+        function calculateTotal() {
+            let total = 0;
+            $('.item-row').each(function() {
+                let qty = $(this).find('.quantity').val() || 0;
+                let price = $(this).find('.price').val() || 0;
+                total += qty * price;
+            });
+            $('#totalAmount').val('$' + total.toFixed(2));
+        }
+
+        function updateSubtotal(row) {
+            let qty = row.find('.quantity').val() || 0;
+            let price = row.find('.price').val() || 0;
+            let subtotal = qty * price;
+            row.find('.subtotal').text('$' + subtotal.toFixed(2));
+            calculateTotal();
+        }
+
+        $('#addItemBtn').click(function() {
+            let html = `
+                <div class="row mb-2 item-row" data-index="${itemIndex}">
+                    <div class="col-md-4">
+                        <select name="Items[${itemIndex}].ProductID" class="form-select product-select" required>
+                            <option value="">-- Select Product --</option>
+                            ${productData.map(p => `<option value="${p.ProductID}" data-price="${p.SellingPrice}">${p.ProductName}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" name="Items[${itemIndex}].Quantity" class="form-control quantity" placeholder="Qty" min="1" required />
+                    </div>
+                    <div class="col-md-2">
+                        <input type="number" step="0.01" name="Items[${itemIndex}].CostPrice" class="form-control price" placeholder="Cost Price" required />
+                    </div>
+                    <div class="col-md-2">
+                        <span class="subtotal">$0.00</span>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-danger btn-sm remove-item">Remove</button>
+                    </div>
+                    <input type="hidden" name="Items[${itemIndex}].ProductName" />
+                    <input type="hidden" name="Items[${itemIndex}].Barcode" />
+                </div>
+            `;
+            $('#itemsContainer').append(html);
+            itemIndex++;
+            bindEvents();
+        });
+
+        function bindEvents() {
+            $('.product-select').off('change').on('change', function() {
+                let selected = $(this).find('option:selected');
+                let price = selected.data('price') || 0;
+                let row = $(this).closest('.item-row');
+                row.find('.price').val(price);
+                updateSubtotal(row);
+            });
+            $('.quantity').off('input').on('input', function() {
+                let row = $(this).closest('.item-row');
+                updateSubtotal(row);
+            });
+            $('.price').off('input').on('input', function() {
+                let row = $(this).closest('.item-row');
+                updateSubtotal(row);
+            });
+            $('.remove-item').off('click').on('click', function() {
+                $(this).closest('.item-row').remove();
+                calculateTotal();
+            });
+        }
+
+        bindEvents();
+        calculateTotal();
+    </script>
+}

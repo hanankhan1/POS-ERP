@@ -1,0 +1,151 @@
+﻿﻿@{
+Layout = "_ManagerLayout";
+ViewData["Title"] = "Manager Dashboard";
+var salesLabels = ViewBag.SalesLabels as List<string> ?? new List<string>();
+var salesValues = ViewBag.SalesValues as List<decimal> ?? new List<decimal>();
+}
+
+<div class="container-fluid px-4">
+    <!-- Header with clock buttons -->
+    <div class="dashboard-header d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h2 class="fw-bold mb-0"><i class="fas fa-chalkboard-user me-2"></i>Manager Dashboard</h2>
+            <p class="mb-0 opacity-75">Welcome back, @User.Identity.Name</p>
+        </div>
+        <div>
+            <span class="badge bg-light text-dark px-3 py-2"><i class="far fa-calendar-alt me-1"></i> @DateTime.Now.ToString("dddd, MMM dd, yyyy")</span>
+        </div>
+        <div class="clock-buttons">
+            <button id="clockInBtn" class="btn btn-success btn-sm"><i class="fas fa-sign-in-alt"></i> Clock In</button>
+            <button id="clockOutBtn" class="btn btn-danger btn-sm"><i class="fas fa-sign-out-alt"></i> Clock Out</button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card bg-primary text-white position-relative">
+                <div class="card-body">
+                    <div class="stat-icon"><i class="fas fa-cubes"></i></div>
+                    <div class="card-title">Total Products</div>
+                    <div class="stat-value">@ViewBag.TotalProducts</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card bg-warning text-white position-relative">
+                <div class="card-body">
+                    <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="card-title">Low Stock</div>
+                    <div class="stat-value">@ViewBag.LowStock</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card bg-danger text-white position-relative">
+                <div class="card-body">
+                    <div class="stat-icon"><i class="fas fa-ban"></i></div>
+                    <div class="card-title">Out of Stock</div>
+                    <div class="stat-value">@ViewBag.OutOfStock</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card bg-success text-white position-relative">
+                <div class="card-body">
+                    <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="card-title">Today's Sales</div>
+                    <div class="stat-value">$@ViewBag.TodaySales</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart & Recent Orders -->
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card chart-card">
+                <div class="card-header"><i class="fas fa-chart-line me-2 text-primary"></i> Sales Trend (Last 7 Days)</div>
+                <div class="card-body"><canvas id="salesChart" height="250"></canvas></div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card recent-orders-card">
+                <div class="card-header"><i class="fas fa-clock me-2 text-primary"></i> Recent Orders</div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-recent table-hover mb-0">
+                            <thead>
+                                <tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Status</th></tr>
+                            </thead>
+                            <tbody>
+                                @if (ViewBag.RecentOrders != null)
+                                {
+                                    foreach (var order in ViewBag.RecentOrders)
+                                    {
+                                        <tr>
+                                            <td>@order.OrderId</td>
+                                            <td>@order.CustomerName</td>
+                                            <td>$@order.Amount</td>
+                                            <td><span class="badge-status @(order.Status == "Paid" ? "bg-soft-success" : "bg-soft-warning")">@order.Status</span></td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr><td colspan="4" class="text-center">No recent orders</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer><hr><p><i class="fas fa-shield-alt"></i> SmartPOS ERP – Manager Dashboard</p></footer>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // Correct JSON serialization using Newtonsoft.Json (or System.Text.Json)
+        var labels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(salesLabels));
+        var values = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(salesValues));
+
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        new Chart(ctx, {
+        type: 'line',
+        data: {
+        labels: labels,
+        datasets: [{
+        label: 'Sales ($)',
+        data: values,
+        borderColor: '#2563eb',
+        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+        fill: true,
+        tension: 0.3
+        }]
+        },
+        options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+        }
+        });
+
+        $(document).ready(function () {
+        $('#clockInBtn').click(function () {
+        $.post('/Manager/ClockIn', function(response) {
+        alert(response.message);
+        if (response.success) location.reload();
+        });
+        });
+        $('#clockOutBtn').click(function () {
+        $.post('/Manager/ClockOut', function(response) {
+        alert(response.message);
+        if (response.success) location.reload();
+        });
+        });
+        });
+    </script>
+}

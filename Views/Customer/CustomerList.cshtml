@@ -1,0 +1,89 @@
+﻿@model IEnumerable<POSERP.Models.Customer.CustomerViewModel>
+@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Customer List";
+}
+
+<div class="container mt-3">
+    <h2><i class="fas fa-users"></i> Customer List</h2>
+    <div class="mb-3">
+        <a href="/Customer/Add" class="btn btn-primary"><i class="fas fa-plus"></i> Add Customer</a>
+        <a href="/Customer/CustomerLogs" class="btn btn-info"><i class="fas fa-history"></i> Activity Log</a>
+        @if (ViewBag.ShowInactive == true)
+        {
+            <a href="/Customer/CustomerList" class="btn btn-secondary">Hide Inactive</a>
+        }
+        else
+        {
+            <a href="/Customer/CustomerList?showInactive=true" class="btn btn-outline-secondary">Show Inactive</a>
+        }
+    </div>
+
+    <form method="get" class="mb-3">
+        <div class="input-group">
+            <input type="hidden" name="showInactive" value="@ViewBag.ShowInactive" />
+            <input type="text" name="search" class="form-control" placeholder="Search by name or phone..." value="@ViewBag.SearchTerm" />
+            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
+            <a href="/Customer/CustomerList?showInactive=@ViewBag.ShowInactive" class="btn btn-secondary"><i class="fas fa-times"></i> Clear</a>
+        </div>
+    </form>
+
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr><th>ID</th><th>Full Name</th><th>Phone</th><th>Address</th><th>Loyalty Points</th><th>Credit Balance</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var c in Model)
+            {
+                <tr>
+                    <td>@c.CustomerID</td>
+                    <td>@c.FullName</td>
+                    <td>@c.Phone</td>
+                    <td>@c.Address</td>
+                    <td>@c.LoyaltyPoints</td>
+                    <td>$@c.CreditBalance</td>
+                    <td>
+                        @if (c.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactive</span>
+                        }
+                    </td>
+                    <td>
+                        <a href="/Customer/Edit/@c.CustomerID" class="btn btn-sm btn-warning">Edit</a>
+                        @if (c.IsActive)
+                        {
+                            <button class="btn btn-sm btn-danger delete-customer" data-id="@c.CustomerID">Deactivate</button>
+                        }
+                        <a href="/Customer/Loyalty/@c.CustomerID" class="btn btn-sm btn-info">Loyalty</a>
+                        <a href="/Customer/PurchaseHistory/@c.CustomerID" class="btn btn-sm btn-secondary">History</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        $('.delete-customer').click(function() {
+            if (confirm('Deactivate this customer? They will no longer appear in POS and cannot be used for new sales.')) {
+                var id = $(this).data('id');
+                $.post('/Customer/Delete', { id: id }, function(data) {
+                    if (data.success) location.reload();
+                    else alert(data.message || 'Operation failed');
+                });
+            }
+        });
+    </script>
+}

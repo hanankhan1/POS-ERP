@@ -1,0 +1,127 @@
+﻿@model IEnumerable<POSERP.Models.Prediction.ProductPredictionViewModel>
+@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Inventory Predictions";
+    var search = ViewBag.Search as string ?? "";
+}
+
+<div class="container-fluid mt-3">
+    <h2><i class="fas fa-chart-line"></i> Inventory Predictions</h2>
+
+    <div class="mb-3">
+        <form method="post" asp-action="GeneratePredictions" style="display:inline;">
+            <button type="submit" class="btn btn-primary" onclick="return confirm('Generate new predictions? This may take a few seconds.');">
+                <i class="fas fa-sync-alt"></i> Generate Predictions
+            </button>
+        </form>
+        <a href="/Prediction/LowStockPredictions" class="btn btn-warning">Low Stock Alerts</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <form method="get" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="search" class="form-control" placeholder="Search product name or barcode..." value="@search" />
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a href="/Prediction/Index" class="btn btn-secondary">Clear</a>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+    <th>Product</th>
+    <th>Barcode</th>
+    <th>Stock</th>
+    <th>Reorder</th>
+    <th>7 Day Demand</th>
+    <th>30 Day Demand</th>
+    <th>Daily Avg</th>
+    <th>Days Left</th>
+    <th>Fast Seller</th>
+    <th>Confidence</th>
+    <th>Trend</th>
+    <th>Recommendation</th>
+    <th>Action</th>
+</tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr>
+                        <td>@p.ProductName</td>
+                        <td>@p.Barcode</td>
+                        <td>@p.CurrentStock</td>
+                        <td>@p.ReorderLevel</td>
+                        <td>@p.PredictedDemand7Days</td>
+                        <td>@p.PredictedDemand30Days</td>
+
+                        <td>
+                            @p.AverageDailySales.ToString("F1")
+                        </td>
+
+                        <td>
+                            @if (p.IsCriticalStock)
+                            {
+                                <span class="badge bg-danger">
+                                    @p.DaysUntilStockout Days
+                                </span>
+                            }
+                            else
+                            {
+                                @p.DaysUntilStockout
+                            }
+                        </td>
+
+                        <td>
+                            @if (p.IsFastSelling)
+                            {
+                                <span class="badge bg-success">
+                                    Fast Seller
+                                </span>
+                            }
+                        </td>
+
+                        <td>
+                            @p.ConfidenceScore.ToString("F0")%
+                        </td>
+
+                        <td>
+                            @p.TrendDirection
+                        </td>
+
+                        <td>
+                            @p.Recommendation
+                        </td>
+
+                        <td>
+                            <a href="/Prediction/ProductDetails/@p.ProductID"
+                               class="btn btn-info btn-sm">
+                                Details
+                            </a>
+
+                            @if (p.CurrentStock <= p.ReorderLevel)
+                            {
+                                <a href="/Purchase/Create?productId=@p.ProductID"
+                                   class="btn btn-success btn-sm">
+                                    Create PO
+                                </a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

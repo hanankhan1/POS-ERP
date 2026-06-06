@@ -1,0 +1,72 @@
+﻿@model IEnumerable<POSERP.Models.Prediction.ProductPredictionViewModel>
+
+@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Low Stock Predictions";
+}
+
+<div class="container mt-3">
+    <h2>
+        <i class="fas fa-exclamation-triangle"></i>
+        Low Stock & Reorder Recommendations
+    </h2>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-success">
+            No products below reorder level. Stock levels are healthy.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-warning table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Barcode</th>
+                        <th>Current Stock</th>
+                        <th>Reorder Level</th>
+                        <th>Predicted Demand (7 Days)</th>
+                        <th>Confidence</th>
+                        <th>Recommendation</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model)
+                    {
+                        <tr>
+                            <td>@p.ProductName</td>
+                            <td>@p.Barcode</td>
+                            <td>@p.CurrentStock</td>
+                            <td>@p.ReorderLevel</td>
+                            <td>@p.PredictedDemand7Days</td>
+                            <td>@p.ConfidenceScore.ToString("F0")%</td>
+                            <td>@p.Recommendation</td>
+                            <td>
+                                <a href="/Purchase/Create?productId=@p.ProductID"
+                                   class="btn btn-sm btn-primary">
+                                    Order Now
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <div class="mt-3">
+        <a href="/Prediction/Index" class="btn btn-secondary">
+            Back to Predictions
+        </a>
+    </div>
+</div>

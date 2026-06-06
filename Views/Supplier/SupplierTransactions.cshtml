@@ -1,0 +1,43 @@
+﻿@model IEnumerable<POSERP.Models.Supplier.SupplierTransactionViewModel>
+@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Supplier Transactions - " + ViewBag.SupplierName;
+}
+
+<div class="container mt-3">
+    <h2><i class="fas fa-file-invoice"></i> Purchase Orders from @ViewBag.SupplierName</h2>
+    <a href="/Supplier/Index" class="btn btn-secondary mb-3">Back to Suppliers</a>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No purchase orders found for this supplier.</div>
+    }
+    else
+    {
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr><th>PO #</th><th>Date</th><th>Total Amount</th><th>Items</th><th>Status</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var po in Model)
+                {
+                    <tr>
+                        <td><a href="/Purchase/Details/@po.PurchaseOrderID">@po.PurchaseOrderID</a></td
+                        <td>@po.OrderDate.ToString("yyyy-MM-dd")</td
+                        <td>$@po.TotalAmount.ToString("F2")</td
+                        <td>@po.ItemCount</td
+                        <td><span class="badge @(po.Status == "Completed" ? "bg-success" : "bg-warning")">@po.Status</span></td
+                        <td><a href="/Purchase/Details/@po.PurchaseOrderID" class="btn btn-sm btn-info">View</a></td
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

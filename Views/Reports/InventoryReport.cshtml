@@ -1,0 +1,41 @@
+﻿@model IEnumerable<POSERP.Models.Reports.InventoryReportViewModel>
+@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Inventory Report";
+    var search = ViewBag.Search as string ?? "";
+}
+
+<div class="container-fluid mt-3">
+    <h2><i class="fas fa-boxes"></i> Inventory Report</h2>
+
+    <form method="get" class="mb-3" id="filterForm">
+        <div class="input-group">
+            <input type="text" name="search" class="form-control" placeholder="Search product name or barcode..." value="@search" />
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a href="/Reports/InventoryReport" class="btn btn-secondary">Clear</a>
+        </div>
+    </form>
+
+    <div id="dynamicContent">
+        @await Html.PartialAsync("_InventoryReportPartial", Model)
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function refreshReport() {
+            var formData = $('#filterForm').serialize();
+            $.get('/Reports/RefreshInventoryReport?' + formData, function(data) {
+                $('#dynamicContent').html(data);
+            }).fail(function() { console.log('Auto-refresh failed'); });
+        }
+        setInterval(refreshReport, 30000);
+    </script>
+}

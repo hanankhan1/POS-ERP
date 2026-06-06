@@ -1,0 +1,151 @@
+﻿@model IEnumerable<POSERP.Models.Fraud.FraudAlertViewModel>
+
+@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Fraud Alerts";
+
+    var search = ViewBag.Search as string ?? "";
+    var riskLevel = ViewBag.RiskLevel as string ?? "";
+}
+
+<div class="container-fluid mt-3">
+    <h2>
+        <i class="fas fa-shield-alt"></i> Fraud Alerts
+    </h2>
+
+    <form method="get" class="mb-3 row g-2">
+        <div class="col-md-4">
+            <input type="text"
+                   name="search"
+                   class="form-control"
+                   placeholder="Search by type or description..."
+                   value="@search" />
+        </div>
+
+        <div class="col-md-3">
+            <select name="riskLevel" class="form-select">
+                <option value="">All Risk Levels</option>
+                <option value="High" selected="@(riskLevel == "High")">High</option>
+                <option value="Medium" selected="@(riskLevel == "Medium")">Medium</option>
+                <option value="Low" selected="@(riskLevel == "Low")">Low</option>
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary">
+                Filter
+            </button>
+        </div>
+
+        @if (User.IsInRole("Admin"))
+        {
+            <div class="col-md-3">
+                <a asp-action="Settings" class="btn btn-outline-secondary">
+                    Alert Settings
+                </a>
+            </div>
+        }
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Date</th>
+                    <th>Cashier</th>
+                    <th>Alert Type</th>
+                    <th>Risk</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var a in Model)
+                {
+                    string riskClass = a.RiskLevel == "High"
+                        ? "bg-danger"
+                        : a.RiskLevel == "Medium"
+                            ? "bg-warning text-dark"
+                            : "bg-info";
+
+                    <tr>
+                        <td>@a.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@a.CashierName</td>
+                        <td>@a.AlertType</td>
+
+                        <td>
+                            <span class="badge @riskClass">
+                                @a.RiskLevel
+                            </span>
+                        </td>
+
+                        <td>@a.Description</td>
+
+                        <td>
+                            @if (a.Status == "Pending")
+                            {
+                                <span class="badge bg-danger">
+                                    Pending
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">
+                                    @a.Status
+                                </span>
+                            }
+                        </td>
+
+                        <td>
+                            <a asp-action="Details"
+                               asp-route-id="@a.AlertID"
+                               class="btn btn-sm btn-info">
+                                Details
+                            </a>
+
+                            @if (a.Status == "Pending")
+                            {
+                                <button type="button"
+                                        class="btn btn-sm btn-success dismiss-alert"
+                                        data-id="@a.AlertID">
+                                    Dismiss
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script>
+        $(document).ready(function () {
+
+            $(".dismiss-alert").click(function () {
+
+                var id = $(this).data("id");
+
+                $.post('/FraudDetection/DismissAlert',
+                    {
+                        id: id
+                    },
+                    function () {
+                        location.reload();
+                    });
+            });
+
+        });
+    </script>
+}

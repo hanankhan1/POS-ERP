@@ -1,0 +1,146 @@
+﻿@model IEnumerable<POSERP.Models.Supplier.SupplierViewModel>
+@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Suppliers";
+}
+
+<div class="container mt-3">
+    <h2><i class="fas fa-truck"></i> Supplier List</h2>
+    <div class="mb-3">
+        <a href="/Supplier/AddSupplier" class="btn btn-primary"><i class="fas fa-plus"></i> Add Supplier</a>
+        @if (ViewBag.ShowInactive == true)
+        {
+            <a href="/Supplier/Index" class="btn btn-secondary">Hide Inactive</a>
+        }
+        else
+        {
+            <a href="/Supplier/Index?showInactive=true" class="btn btn-outline-secondary">Show Inactive</a>
+        }
+    </div>
+
+    <form method="get" class="mb-3">
+        <div class="input-group">
+            <input type="hidden" name="showInactive" value="@ViewBag.ShowInactive" />
+            <input type="text" name="search" class="form-control" placeholder="Search by name, contact, or phone..." value="@ViewBag.SearchTerm" />
+            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
+            <a href="/Supplier/Index?showInactive=@ViewBag.ShowInactive" class="btn btn-secondary">Clear</a>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Contact Person</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Address</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model)
+                {
+                    <tr>
+                        <td>@s.SupplierID</td>
+                        <td>@s.SupplierName</td>
+                        <td>@s.ContactPerson</td>
+                        <td>@s.Phone</td>
+                        <td>@s.Email</td>
+                        <td>@s.Address</td>
+                        <td>
+                            @if (s.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                        </td>
+                        <td>
+                            <a href="/Supplier/EditSupplier/@s.SupplierID" class="btn btn-sm btn-warning">Edit</a>
+                            @if (s.IsActive)
+                            {
+                                <button class="btn btn-sm btn-danger delete-supplier" data-id="@s.SupplierID">Deactivate</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-success reactivate-supplier" data-id="@s.SupplierID">Reactivate</button>
+                            }
+                            <a href="/Supplier/SupplierProducts/@s.SupplierID" class="btn btn-sm btn-info">Products</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No suppliers found.</div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+
+        $(document).ready(function () {
+
+            $('.reactivate-supplier').click(function () {
+
+                if (confirm('Reactivate this supplier?')) {
+
+                    var id = $(this).data('id');
+
+                    $.post('/Supplier/ReactivateSupplier', { id: id }, function (data) {
+
+                        if (data.success) {
+                            location.reload();
+                        }
+                        else {
+                            alert(data.message || 'Operation failed');
+                        }
+
+                    });
+
+                }
+
+            });
+
+            $('.delete-supplier').click(function () {
+
+                if (confirm('Deactivate this supplier?')) {
+
+                    var id = $(this).data('id');
+
+                    $.post('/Supplier/DeactivateSupplier', { id: id }, function (data) {
+
+                        if (data.success) {
+                            location.reload();
+                        }
+                        else {
+                            alert(data.message || 'Operation failed');
+                        }
+
+                    });
+
+                }
+
+            });
+
+        });
+
+    </script>
+}
+}

@@ -1,0 +1,70 @@
+﻿@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Categories";
+    var categories = Model as IEnumerable<dynamic> ?? new List<dynamic>();
+}
+<!-- Search Form for Categories -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" action="/Product/Categories" class="row g-3">
+            <div class="col-md-10">
+                <input type="text" name="search" class="form-control" placeholder="Search by category name or description..." value="@ViewBag.Search" />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search"></i> Search</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reset button -->
+@if (!string.IsNullOrEmpty(ViewBag.Search))
+{
+    <div class="mb-2">
+        <a href="/Product/Categories" class="btn btn-secondary btn-sm">Clear Search</a>
+    </div>
+}
+<div class="container">
+    <h2>Categories</h2>
+    <div class="card mb-4">
+        <div class="card-header">Add New Category</div>
+        <div class="card-body">
+            <form method="post" action="/Product/AddCategory">
+                @Html.AntiForgeryToken()
+                <div class="row">
+                    <div class="col-md-5"><input type="text" name="CategoryName" class="form-control" placeholder="Category Name" required /></div>
+                    <div class="col-md-5"><input type="text" name="Description" class="form-control" placeholder="Description" /></div>
+                    <div class="col-md-2"><button type="submit" class="btn btn-primary">Add</button></div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <table class="table table-bordered">
+        <thead><tr><th>ID</th><th>Name</th><th>Description</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+            @foreach (var cat in categories)
+            {
+                <tr>
+                    <td>@cat.CategoryID</td>
+                    <td>@cat.CategoryName</td>
+                    <td>@cat.Description</td>
+                    <td>@(cat.IsActive == true ? "Active" : "Inactive")</td>
+                    <td>
+                        <form method="post" action="/Product/DeleteCategory" onsubmit="return confirm('Delete category?')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@cat.CategoryID" />
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

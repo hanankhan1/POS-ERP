@@ -1,0 +1,79 @@
+﻿@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Inventory History";
+    var logs = Model as IEnumerable<dynamic> ?? new List<dynamic>();
+}
+
+<div class="container-fluid px-4">
+    <h2 class="mt-3"><i class="fas fa-history me-2"></i>Inventory Change Log</h2>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" action="/Inventory/InventoryHistory" class="row g-3">
+                <div class="col-md-10">
+                    <input type="text" name="search" class="form-control" placeholder="Search product, change type, or user..." value="@ViewBag.Search" />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search"></i> Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(ViewBag.Search))
+    {
+        <div class="mb-2"><a href="/Inventory/InventoryHistory" class="btn btn-secondary btn-sm">Clear Search</a></div>
+    }
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Date</th>
+                            <th>Product</th>
+                            <th>Previous</th>
+                            <th>New</th>
+                            <th>Change</th>
+                            <th>Type</th>
+                            <th>Reference</th>
+                            <th>Remarks</th>
+                            <th>Changed By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (logs != null && logs.Any())
+                        {
+                            foreach (var log in logs)
+                            {
+                                <tr>
+                                    <td>@(log.ChangedAt?.ToString() ?? "")</td>
+                                    <td>@(log.ProductName ?? "")</td>
+                                    <td>@(log.PreviousStock?.ToString() ?? "")</td>
+                                    <td>@(log.NewStock?.ToString() ?? "")</td>
+                                    <td>@(log.QuantityChanged?.ToString() ?? "")</td>
+                                    <td><span class="badge bg-info">@(log.ChangeType ?? "")</span></td>
+                                    <td>@(log.ReferenceNo ?? "")</td>
+                                    <td>@(log.Remarks ?? "")</td>
+                                    <td>@(log.ChangedBy ?? "")</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="9" class="text-center">No records found.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

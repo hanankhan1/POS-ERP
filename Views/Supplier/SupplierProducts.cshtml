@@ -1,0 +1,74 @@
+﻿@model List<POSERP.Models.Supplier.SupplierProductViewModel>
+@{
+    if (User.IsInRole("Admin"))
+    {
+        Layout = "_AdminLayout";
+    }
+    else
+    {
+        Layout = "_ManagerLayout";
+    }
+    ViewData["Title"] = "Products from " + (ViewBag.SupplierName ?? "Supplier");
+}
+
+<div class="container-fluid px-4 py-3">
+    <div class="supplier-header">
+        <h2><i class="fas fa-boxes me-2"></i>Products Supplied by @ViewBag.SupplierName</h2>
+        <p class="mb-0 opacity-75">All active products from this supplier</p>
+    </div>
+
+    @if (ViewBag.SupplierIsActive == false)
+    {
+        <div class="alert alert-warning">
+            ⚠️ This supplier is currently inactive. Products are still listed but cannot be assigned to new purchase orders.
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info">No products found from this supplier.</div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Barcode</th>
+                                <th>Selling Price</th>
+                                <th>Stock</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model)
+                            {
+                                <tr>
+                                    <td>@p.ProductName</td>
+                                    <td>@p.Barcode</td>
+                                    <td>$@p.SellingPrice.ToString("F2")</td>
+                                    <td>@p.StockQuantity</td>
+                                    <td><a href="/Product/Edit/@p.ProductID" class="btn btn-sm btn-primary">View/Edit</a></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            <a href="/Supplier/Index" class="btn btn-secondary mt-3">Back to Suppliers</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .supplier-header {
+        background: linear-gradient(135deg, #0f172a, #1e3a8a);
+        padding: 1rem 2rem;
+        border-radius: 1rem;
+        color: white;
+        margin-bottom: 2rem;
+    }
+</style>

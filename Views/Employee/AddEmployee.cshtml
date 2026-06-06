@@ -1,0 +1,71 @@
+﻿@model POSERP.Models.Employee.EmployeeViewModel
+@{
+    Layout = User.IsInRole("Admin") ? "_AdminLayout" : "_ManagerLayout";
+    ViewData["Title"] = "Add Employee";
+}
+
+<div class="container mt-3">
+    <h2>Add Employee</h2>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <form method="post">
+        @Html.AntiForgeryToken()
+        <div class="row">
+			
+            <div class="col-md-6 mb-3">
+                <label>Full Name</label>
+                <input asp-for="FullName" class="form-control" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>Email</label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>Role</label>
+                <select asp-for="Role" class="form-select">
+                    <option value="">Select</option>
+                    <option>Admin</option>
+                    <option>Manager</option>
+                    <option>Cashier</option>
+                </select>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>CNIC</label>
+                <input asp-for="CNIC" class="form-control" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>Phone</label>
+                <input asp-for="Phone" class="form-control" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>Hire Date</label>
+                <input asp-for="HireDate" type="date" class="form-control" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>Salary</label>
+                <input asp-for="Salary" class="form-control" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>Designation</label>
+                <input asp-for="Designation" class="form-control" />
+            </div>
+
+        </div>
+
+        <button class="btn btn-primary">Save</button>
+        <a href="/Employee/EmployeeList" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

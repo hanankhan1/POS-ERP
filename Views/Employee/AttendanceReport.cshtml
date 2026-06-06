@@ -1,0 +1,63 @@
+﻿@model IEnumerable<dynamic>
+@{
+    Layout = User.IsInRole("Admin") ? "_AdminLayout" : "_ManagerLayout";
+
+    var dates = ViewBag.Dates as List<DateTime>;
+    var attendanceData = ViewBag.AttendanceData as Dictionary<int, Dictionary<DateTime, string>>;
+}
+
+<div class="container-fluid mt-3">
+    <h2>Attendance Report</h2>
+
+    <table class="table table-bordered table-sm">
+        <thead>
+            <tr>
+                <th>Employee</th>
+
+                @foreach (var d in dates)
+                {
+                    <th class="text-center">@d.Day</th>
+                }
+
+                <th>P</th>
+                <th>A</th>
+                <th>L</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var emp in Model)
+            {
+                int present = 0, absent = 0, late = 0;
+
+                <tr>
+                    <td>@emp.FullName</td>
+
+                    @foreach (var d in dates)
+                    {
+                        string status = attendanceData.ContainsKey(emp.EmployeeID)
+                            && attendanceData[emp.EmployeeID].ContainsKey(d)
+                            ? attendanceData[emp.EmployeeID][d]
+                            : "Absent";
+
+                        if (status == "Present") present++;
+                        else if (status == "Late") late++;
+                        else absent++;
+
+                        <td class="text-center">
+                            <span class="badge bg-secondary">
+                                @(string.IsNullOrEmpty(status) ? "-" : status.Substring(0, 1))
+                            </span>
+                        </td>
+                    }
+
+                    <td>@present</td>
+                    <td>@absent</td>
+                    <td>@late</td>
+                    <td>@dates.Count</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
